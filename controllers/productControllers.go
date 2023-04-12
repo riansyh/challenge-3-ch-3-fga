@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"challenge-2/database"
 	"challenge-2/helpers"
 	"challenge-2/models"
+	"challenge-2/service"
 	"net/http"
 	"strconv"
 
@@ -12,22 +12,21 @@ import (
 )
 
 func CreateProduct(c *gin.Context) {
-	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	contentType := helpers.GetContentType(c)
 
-	Product := models.Product{}
+	product := models.Product{}
 	userID := uint(userData["id"].(float64))
 
 	if contentType == appJSON {
-		c.ShouldBindJSON(&Product)
+		c.ShouldBindJSON(&product)
 	} else {
-		c.ShouldBind(&Product)
+		c.ShouldBind(&product)
 	}
 
-	Product.UserID = userID
+	product.UserID = userID
 
-	err := db.Debug().Create(&Product).Error
+	err := service.CreateProduct(&product)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -37,28 +36,27 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, Product)
+	c.JSON(http.StatusCreated, product)
 }
 
 func UpdateProduct(c *gin.Context) {
-	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	contentType := helpers.GetContentType(c)
-	Product := models.Product{}
+	product := models.Product{}
 
 	productId, _ := strconv.Atoi(c.Param("productId"))
 	userID := uint(userData["id"].(float64))
 
 	if contentType == appJSON {
-		c.ShouldBindJSON(&Product)
+		c.ShouldBindJSON(&product)
 	} else {
-		c.ShouldBind(&Product)
+		c.ShouldBind(&product)
 	}
 
-	Product.UserID = userID
-	Product.ID = uint(productId)
+	product.UserID = userID
+	product.ID = uint(productId)
 
-	err := db.Model(&Product).Where("id = ?", productId).Updates(models.Product{Title: Product.Title, Description: Product.Description}).Error
+	err := service.UpdateProduct(&product)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -68,14 +66,11 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, Product)
+	c.JSON(http.StatusOK, product)
 }
 
 func GetAllProducts(c *gin.Context) {
-	db := database.GetDB()
-	products := []models.Product{}
-
-	err := db.Find(&products).Error
+	products, err := service.GetAllProducts()
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -89,17 +84,8 @@ func GetAllProducts(c *gin.Context) {
 }
 
 func GetProductById(c *gin.Context) {
-	db := database.GetDB()
-	userData := c.MustGet("userData").(jwt.MapClaims)
-	Product := models.Product{}
-
 	productId, _ := strconv.Atoi(c.Param("productId"))
-	userID := uint(userData["id"].(float64))
-
-	Product.UserID = userID
-	Product.ID = uint(productId)
-
-	err := db.First(&Product, "id = ?", productId).Error
+	product, err := service.GetProductById(uint(productId))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -109,11 +95,10 @@ func GetProductById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, Product)
+	c.JSON(http.StatusOK, product)
 }
 
 func DeleteProductById(c *gin.Context) {
-	db := database.GetDB()
 	userData := c.MustGet("userData").(jwt.MapClaims)
 	Product := models.Product{}
 
@@ -123,20 +108,12 @@ func DeleteProductById(c *gin.Context) {
 	Product.UserID = userID
 	Product.ID = uint(productId)
 
-	result := db.Where("id = ?", productId).Delete(&Product)
+	err := service.DeleteProductById(uint(productId))
 
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Data not found",
-			"message": "Data with selected id is not found",
-		})
-		return
-	}
-
-	if result.Error != nil {
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Bad Request",
-			"message": result.Error.Error(),
+			"message": err,
 		})
 		return
 	}
