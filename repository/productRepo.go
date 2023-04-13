@@ -10,8 +10,8 @@ type ProductRepository interface {
 	CreateProduct(product *models.Product) error
 	UpdateProduct(product *models.Product) error
 	DeleteProduct(product *models.Product) error
-	GetProductById(id uint) (*models.Product, error)
-	GetAllProduct() (*[]models.Product, error)
+	GetProductById(id uint) *models.Product
+	GetAllProduct() *[]models.Product
 }
 
 type productRepository struct {
@@ -34,21 +34,21 @@ func (r *productRepository) DeleteProduct(product *models.Product) error {
 	return r.db.Delete(product, "id = ?", product.ID).Error
 }
 
-func (r *productRepository) GetProductById(id uint) (*models.Product, error) {
+func (r *productRepository) GetProductById(id uint) *models.Product {
 	product := &models.Product{}
 	err := r.db.First(product, "id = ?", id).Error
 	if err != nil {
-		return nil, err
+		return nil
 	}
-	return product, nil
+	return product
 }
 
-func (r *productRepository) GetAllProduct() (*[]models.Product, error) {
+func (r *productRepository) GetAllProduct() *[]models.Product {
 	products := &[]models.Product{}
 
 	err := r.db.Find(&products).Error
 	if err != nil {
-		return nil, err
+		return nil
 	}
-	return products, nil
+	return products
 }

@@ -1,14 +1,18 @@
 package models
 
 import (
+	"time"
+
 	"github.com/asaskevich/govalidator"
 	"gorm.io/gorm"
 )
 
 type Product struct {
-	GormModel
-	Title       string `json:"title" form:"title" valid:"required~Title pf ypur product is required"`
-	Description string `json:"description" form:"description" valid:"required~Description of your product is required"`
+	ID          uint       `gorm:"primaryKey" json:"id"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
+	Title       string     `json:"title" form:"title" valid:"required~Title pf ypur product is required"`
+	Description string     `json:"description" form:"description" valid:"required~Description of your product is required"`
 	UserID      uint
 	User        *User
 }

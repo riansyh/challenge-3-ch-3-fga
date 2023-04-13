@@ -3,44 +3,57 @@ package service
 import (
 	"challenge-2/models"
 	"challenge-2/repository"
+	"errors"
 )
 
 type ProductService interface {
-	CreateProduct(photo *models.Product) error
-	UpdateProduct(photo *models.Product, userId uint, id uint) error
-	DeleteProduct(photo *models.Product, userId uint, id uint) error
+	CreateProduct(product *models.Product) error
+	UpdateProduct(product *models.Product, userId uint, id uint) error
+	DeleteProduct(product *models.Product, userId uint, id uint) error
 	GetProductById(id uint) (*models.Product, error)
 	GetAllProduct() (*[]models.Product, error)
 }
 
-type photoService struct {
+type productService struct {
 	repo repository.ProductRepository
 }
 
 func NewProductService(repo repository.ProductRepository) ProductService {
-	return &photoService{repo: repo}
+	return &productService{repo: repo}
 }
 
-func (s *photoService) CreateProduct(photo *models.Product) error {
-	return s.repo.CreateProduct(photo)
+func (s *productService) CreateProduct(product *models.Product) error {
+	return s.repo.CreateProduct(product)
 }
 
-func (s *photoService) UpdateProduct(photo *models.Product, userId uint, id uint) error {
-	photo.UserID = userId
-	photo.ID = id
-	return s.repo.UpdateProduct(photo)
+func (s *productService) UpdateProduct(product *models.Product, userId uint, id uint) error {
+	product.UserID = userId
+	product.ID = id
+	return s.repo.UpdateProduct(product)
 }
 
-func (s *photoService) DeleteProduct(photo *models.Product, userId uint, id uint) error {
-	photo.UserID = userId
-	photo.ID = id
-	return s.repo.DeleteProduct(photo)
+func (s *productService) DeleteProduct(product *models.Product, userId uint, id uint) error {
+	product.UserID = userId
+	product.ID = id
+	return s.repo.DeleteProduct(product)
 }
 
-func (s *photoService) GetProductById(id uint) (*models.Product, error) {
-	return s.repo.GetProductById(id)
+func (s *productService) GetProductById(id uint) (*models.Product, error) {
+	product := s.repo.GetProductById(id)
+
+	if product == nil {
+		return nil, errors.New("product not found")
+	}
+
+	return product, nil
 }
 
-func (s *photoService) GetAllProduct() (*[]models.Product, error) {
-	return s.repo.GetAllProduct()
+func (s *productService) GetAllProduct() (*[]models.Product, error) {
+	products := s.repo.GetAllProduct()
+
+	if products == nil {
+		return nil, errors.New("products not found")
+	}
+
+	return products, nil
 }
