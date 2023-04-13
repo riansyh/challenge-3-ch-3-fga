@@ -1,37 +1,54 @@
 package repository
 
 import (
-	"challenge-2/database"
 	"challenge-2/models"
+
+	"gorm.io/gorm"
 )
 
-func CreateProduct(product *models.Product) error {
-	db := database.GetDB()
-	return db.Debug().Create(product).Error
+type ProductRepository interface {
+	CreateProduct(product *models.Product) error
+	UpdateProduct(product *models.Product) error
+	DeleteProduct(product *models.Product) error
+	GetProductById(id uint) (*models.Product, error)
+	GetAllProduct() (*[]models.Product, error)
 }
 
-func UpdateProduct(product *models.Product) error {
-	db := database.GetDB()
-	return db.Model(product).Updates(models.Product{Title: product.Title, Description: product.Description}).Error
+type productRepository struct {
+	db *gorm.DB
 }
 
-func GetAllProducts() ([]models.Product, error) {
-	db := database.GetDB()
-	products := []models.Product{}
-	err := db.Find(&products).Error
-	return products, err
+func NewProductRepository(db *gorm.DB) ProductRepository {
+	return &productRepository{db: db}
 }
 
-func GetProductById(productId uint) (models.Product, error) {
-	db := database.GetDB()
-	product := models.Product{}
-	err := db.First(&product, "id = ?", productId).Error
-	return product, err
+func (r *productRepository) CreateProduct(product *models.Product) error {
+	return r.db.Create(product).Error
 }
 
-func DeleteProductById(productId uint) error {
-	db := database.GetDB()
-	product := models.Product{}
-	product.ID = productId
-	return db.Delete(&product).Error
+func (r *productRepository) UpdateProduct(product *models.Product) error {
+	return r.db.Model(product).Updates(models.Product{Title: product.Title, Description: product.Description}).Error
+}
+
+func (r *productRepository) DeleteProduct(product *models.Product) error {
+	return r.db.Delete(product, "id = ?", product.ID).Error
+}
+
+func (r *productRepository) GetProductById(id uint) (*models.Product, error) {
+	product := &models.Product{}
+	err := r.db.First(product, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
+}
+
+func (r *productRepository) GetAllProduct() (*[]models.Product, error) {
+	products := &[]models.Product{}
+
+	err := r.db.Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
 }

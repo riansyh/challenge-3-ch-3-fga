@@ -5,22 +5,42 @@ import (
 	"challenge-2/repository"
 )
 
-func CreateProduct(product *models.Product) error {
-	return repository.CreateProduct(product)
+type ProductService interface {
+	CreateProduct(photo *models.Product) error
+	UpdateProduct(photo *models.Product, userId uint, id uint) error
+	DeleteProduct(photo *models.Product, userId uint, id uint) error
+	GetProductById(id uint) (*models.Product, error)
+	GetAllProduct() (*[]models.Product, error)
 }
 
-func UpdateProduct(product *models.Product) error {
-	return repository.UpdateProduct(product)
+type photoService struct {
+	repo repository.ProductRepository
 }
 
-func GetAllProducts() ([]models.Product, error) {
-	return repository.GetAllProducts()
+func NewProductService(repo repository.ProductRepository) ProductService {
+	return &photoService{repo: repo}
 }
 
-func GetProductById(productId uint) (models.Product, error) {
-	return repository.GetProductById(productId)
+func (s *photoService) CreateProduct(photo *models.Product) error {
+	return s.repo.CreateProduct(photo)
 }
 
-func DeleteProductById(productId uint) error {
-	return repository.DeleteProductById(productId)
+func (s *photoService) UpdateProduct(photo *models.Product, userId uint, id uint) error {
+	photo.UserID = userId
+	photo.ID = id
+	return s.repo.UpdateProduct(photo)
+}
+
+func (s *photoService) DeleteProduct(photo *models.Product, userId uint, id uint) error {
+	photo.UserID = userId
+	photo.ID = id
+	return s.repo.DeleteProduct(photo)
+}
+
+func (s *photoService) GetProductById(id uint) (*models.Product, error) {
+	return s.repo.GetProductById(id)
+}
+
+func (s *photoService) GetAllProduct() (*[]models.Product, error) {
+	return s.repo.GetAllProduct()
 }

@@ -2,7 +2,10 @@ package router
 
 import (
 	"challenge-2/controllers"
+	"challenge-2/database"
 	"challenge-2/middlewares"
+	"challenge-2/repository"
+	"challenge-2/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,13 +21,17 @@ func StartApp() *gin.Engine {
 
 	productRouter := r.Group("/products")
 	{
-		productRouter.Use(middlewares.Authentication())
-		productRouter.POST("/", controllers.CreateProduct)
-		productRouter.GET("/", middlewares.AdminAuthorization(), controllers.GetAllProducts)
+		productRepository := repository.NewProductRepository(database.GetDB())
+		productService := service.NewProductService(productRepository)
+		productController := controllers.NewProductController(productService)
 
-		productRouter.PUT("/:productId", middlewares.ProductAuthorization(), controllers.UpdateProduct)
-		productRouter.GET("/:productId", middlewares.ProductAuthorization(), controllers.GetProductById)
-		productRouter.DELETE("/:productId", middlewares.AdminAuthorization(), controllers.DeleteProductById)
+		productRouter.Use(middlewares.Authentication())
+		productRouter.POST("/", productController.CreateProduct)
+		productRouter.GET("/", middlewares.AdminAuthorization(), productController.GetAllProduct)
+
+		productRouter.PUT("/:productId", middlewares.ProductAuthorization(), productController.UpdateProduct)
+		productRouter.GET("/:productId", middlewares.ProductAuthorization(), productController.GetProductById)
+		productRouter.DELETE("/:productId", middlewares.AdminAuthorization(), productController.DeleteProduct)
 	}
 	return r
 }
