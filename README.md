@@ -1,26 +1,11 @@
-# Challenge-2 Chapter 3 FGA Golang
+# Challenge-3 Chapter 3 FGA Golang
 
 ## Soal
 
-Buatlah Rest API product (create, read, update, delete) dengan fitur login dan register, serta memiliki 3 fitur middleware antara lain :
+Pada chapter 3 sesi 2 sebelumnya kita sudah mempelajari cara membuat best practice REST API dan memasangkan middleware pada REST API, maka pada project sesi ini lanjutkanlah challenge sesi sebelumnya dengan membuat mocking test dengan testify
 
--   Authentication
--   Authorization multi level user
--   Authorization access product by id
-
-Notes : buatlah authentication dengan JWT token golang, lalu gunakan token tersebut untuk setiap hit Rest API product.
-
-Skema yang harus diterapkan:
-![skema](https://i.ibb.co/ZY0LjcL/skema.png)
-
-## List Endpoint
-
-| HTTP Method | Endpoint        | Description                    | Authorization              |
-| ----------- | --------------- | ------------------------------ | -------------------------- |
-| POST        | /users/register | Register user with 'user' role | -                          |
-| POST        | /users/login    | Login user                     | -                          |
-| GET         | /products       | Get all products list          | Admin only                 |
-| POST        | /products       | Create a product               | Admin & user               |
-| GET         | /products/:id   | Get product by id              | Admin & corresponding user |
-| PUT         | /products/:id   | Update product by id           | Admin & corresponding user |
-| DELETE      | /products/:id   | Delete product by id           | Admin & corresponding user |
+Scenario test yang perlu dibuat adalah sebagai berikut :
+- Mock test service get one product found
+- Mock test service get one product not found
+- Mock test service get all product found
+- Mock test service get all product not found
