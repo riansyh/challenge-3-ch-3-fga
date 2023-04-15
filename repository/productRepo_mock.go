@@ -7,7 +7,9 @@ import (
 )
 
 type ProductRepositoryMock struct {
-	Mock mock.Mock
+	Mock     mock.Mock
+	Products []models.Product
+	Error    error
 }
 
 func (repository *ProductRepositoryMock) GetProductById(id uint) *models.Product {
@@ -35,13 +37,9 @@ func (repository *ProductRepositoryMock) DeleteProduct(product *models.Product) 
 }
 
 func (repository *ProductRepositoryMock) GetAllProduct() *[]models.Product {
-	arguments := repository.Mock.Called()
-
-	if arguments.Get(0) == nil {
+	if repository.Error != nil {
 		return nil
 	}
 
-	products := arguments.Get(0).([]models.Product)
-
-	return &products
+	return &repository.Products
 }

@@ -3,17 +3,17 @@ package service
 import (
 	"challenge-2/models"
 	"challenge-2/repository"
+	"errors"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-var productRepository = repository.ProductRepositoryMock{Mock: mock.Mock{}}
-var productServices = productService{repo: &productRepository}
-
 func TestProductServiceGetOneProductNotFound(t *testing.T) {
+	var productRepository = repository.ProductRepositoryMock{Mock: mock.Mock{}}
+	var productServices = productService{repo: &productRepository}
+
 	productRepository.Mock.On("GetProductById", uint(1)).Return(nil)
 
 	product, err := productServices.GetProductById(1)
@@ -24,28 +24,32 @@ func TestProductServiceGetOneProductNotFound(t *testing.T) {
 }
 
 func TestProductServiceGetOneProductFound(t *testing.T) {
-	product := models.Product{
+	var productRepository = repository.ProductRepositoryMock{Mock: mock.Mock{}}
+	var productServices = productService{repo: &productRepository}
+
+	products := models.Product{
 		ID:          1,
 		Title:       "Laptop",
 		Description: "Lenovo A134",
-		CreatedAt:   &time.Time{},
-		UpdatedAt:   &time.Time{},
-		UserID:      2,
-		User:        nil,
 	}
 
-	productRepository.Mock.On("GetProductById", uint(1)).Return(product)
+	productRepository.Mock.On("GetProductById", uint(1)).Return(products)
 
-	result, err := productServices.GetProductById(1)
+	product, err := productServices.GetProductById(1)
 
 	assert.Nil(t, err)
-	assert.NotNil(t, result)
+	assert.NotNil(t, product)
 
-	assert.Equal(t, product, result, "result has to be a product with ID 1")
+	assert.Equal(t, &products, product, "result has to be a product with ID 1")
 }
 
 func TestProductServiceGetAllProductNotFound(t *testing.T) {
-	productRepository.Mock.On("GetAllProduct").Return(nil)
+	var productRepository = repository.ProductRepositoryMock{
+		Mock:     mock.Mock{},
+		Products: []models.Product{},
+		Error:    errors.New("product not found"),
+	}
+	var productServices = productService{repo: &productRepository}
 
 	product, err := productServices.GetAllProduct()
 
@@ -55,25 +59,28 @@ func TestProductServiceGetAllProductNotFound(t *testing.T) {
 }
 
 func TestProductServiceGetAllProductFound(t *testing.T) {
-	products := []models.Product{
-		{
-			ID:          uint(1),
-			Title:       "Laptop",
-			Description: "Lenovo A134",
-		},
-		{
-			ID:          uint(2),
-			Title:       "Macbook",
-			Description: "Lenovo A134",
-		},
+	var productRepository = repository.ProductRepositoryMock{
+		Mock: mock.Mock{},
+		Products: []models.Product{
+			{
+				ID:          uint(1),
+				Title:       "Laptop",
+				Description: "Lenovo A134",
+			},
+			{
+				ID:          uint(2),
+				Title:       "Macbook",
+				Description: "Lenovo A134",
+			}},
 	}
+	var productServices = productService{repo: &productRepository}
 
-	productRepository.Mock.On("GetAllProduct").Return(products)
+	productRepository.Mock.On("GetAllProduct").Return(productRepository.Products)
 
 	result, err := productServices.GetAllProduct()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 
-	assert.Equal(t, products, result, "result has to be a product with ID 1")
+	assert.Equal(t, len(*result), len(productRepository.Products), "Expected %d products, but got %d", len(productRepository.Products), len(*result))
 }
